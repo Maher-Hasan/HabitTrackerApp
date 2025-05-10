@@ -1,6 +1,15 @@
 import 'package:flutter/material.dart';
 
 class ProfileScreen extends StatefulWidget {
+  final bool isDarkMode;
+  final void Function(bool isDarkMode) onThemeChanged;
+
+  const ProfileScreen({
+    super.key,
+    required this.isDarkMode,
+    required this.onThemeChanged,
+  });
+
   @override
   State<ProfileScreen> createState() => _ProfileScreenState();
 }
@@ -9,8 +18,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
   String _name = "Your Name";
   bool _isEditing = false;
   final _controller = TextEditingController();
-
-  bool _darkMode = false; // for the switch
 
   @override
   void initState() {
@@ -26,73 +33,92 @@ class _ProfileScreenState extends State<ProfileScreen> {
 
   void _saveName() {
     setState(() {
-      _name = _controller.text;
+      _name = _controller.text.trim().isEmpty ? _name : _controller.text;
       _isEditing = false;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(16.0),
-      child: Column(
-        children: [
-          // Profile image (placeholder)
-          CircleAvatar(
-            radius: 40,
-            backgroundColor: Colors.blue,
-            child: Icon(Icons.person, size: 40, color: Colors.white),
-          ),
-          SizedBox(height: 20),
-
-          // Name and edit button
-          _isEditing
-              ? Row(
+      child: Center( // Centering the entire column
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: 600), // Optional constraint for max width
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Profile image and spacing
+              Center(
+                child: Column(
                   children: [
-                    Expanded(
-                      child: TextField(
-                        controller: _controller,
-                        decoration: InputDecoration(labelText: 'Enter your name'),
-                      ),
+                    CircleAvatar(
+                      radius: 40,
+                      backgroundColor: Colors.blue,
+                      child: Icon(Icons.person, size: 40, color: Colors.white),
                     ),
-                    IconButton(
-                      icon: Icon(Icons.check),
-                      onPressed: _saveName,
-                    ),
-                  ],
-                )
-              : Row(
-                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                  children: [
-                    Text(
-                      _name,
-                      style: TextStyle(fontSize: 20),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.edit),
-                      onPressed: _toggleEditing,
-                    ),
+                    const SizedBox(height: 16),
                   ],
                 ),
+              ),
 
-          SizedBox(height: 30),
+              // Name section with edit button
+              _isEditing
+                  ? Row(
+                      children: [
+                        Expanded(
+                          child: TextField(
+                            controller: _controller,
+                            decoration: const InputDecoration(
+                              labelText: 'Enter your name',
+                              border: OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        IconButton(
+                          icon: const Icon(Icons.check),
+                          onPressed: _saveName,
+                        ),
+                      ],
+                    )
+                  : Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text(
+                          _name,
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w500,
+                              ),
+                        ),
+                        IconButton(
+                          icon: const Icon(Icons.edit),
+                          onPressed: _toggleEditing,
+                        ),
+                      ],
+                    ),
 
-          // Dark mode toggle (just for practice)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Text('Dark Mode'),
-              Switch(
-                value: _darkMode,
-                onChanged: (value) {
-                  setState(() {
-                    _darkMode = value;
-                  });
-                },
+              const SizedBox(height: 32),
+
+              // Settings section title
+              Text("Settings", style: Theme.of(context).textTheme.titleMedium),
+
+              const SizedBox(height: 12),
+
+              // Dark Mode toggle switch
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  const Text("Dark Mode"),
+                  Switch(
+                    value: widget.isDarkMode,
+                    onChanged: widget.onThemeChanged,
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

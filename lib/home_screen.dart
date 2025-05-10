@@ -3,7 +3,14 @@ import 'add_habit_screen.dart';
 import 'profile_screen.dart';
 
 class HomeScreen extends StatefulWidget {
-  const HomeScreen({super.key});
+  final ThemeMode themeMode;
+  final void Function(bool isDarkMode) onToggleTheme;
+
+  const HomeScreen({
+    super.key,
+    required this.themeMode,
+    required this.onToggleTheme,
+  });
 
   @override
   State<HomeScreen> createState() => _HomeScreenState();
@@ -12,139 +19,110 @@ class HomeScreen extends StatefulWidget {
 class _HomeScreenState extends State<HomeScreen> {
   int _selectedIndex = 0;
 
-  final List<Widget> _screens = [
-    // This screen is for the main habit view
-    Center(
-      child: Text('Habit List'),
-    ), // You can later replace this with a proper screen
-    AddHabitScreen(),
-    ProfileScreen(),
-  ];
-
   @override
   Widget build(BuildContext context) {
+    final List<Widget> _screens = [
+      Center(child: Text('Habit List')),
+      AddHabitScreen(),
+      ProfileScreen(
+        isDarkMode: widget.themeMode == ThemeMode.dark,
+        onThemeChanged: widget.onToggleTheme,
+      ),
+    ];
+
     return Scaffold(
       appBar: AppBar(title: Text('Habit Tracker')),
       body: SafeArea(child: _screens[_selectedIndex]),
       bottomNavigationBar: BottomAppBar(
-        color: Colors.white,
-        elevation: 0, // Optional: removes shadow
-        shape: null, // Remove notch shape
+        color: Theme.of(context).colorScheme.surfaceVariant,  // Ensure contrast
         child: SizedBox(
           height: 70,
           child: Row(
-            mainAxisAlignment: MainAxisAlignment.spaceEvenly, // Ensures symmetry
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
             children: <Widget>[
-              // Habits Tab
-              Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(30),
-                    splashColor: Colors.blue.withOpacity(0.2), // Subtle effect
-                    highlightColor: Colors.blue.withOpacity(0.1),
-                    onTap: () => setState(() => _selectedIndex = 0),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.check_box,
-                          color: _selectedIndex == 0
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).disabledColor,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Habits',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _selectedIndex == 0
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).disabledColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ),
+              _buildNavItem(Icons.check_box, 'Habits', 0),
+              Expanded(child: SizedBox()), // For spacing
+              _buildNavItem(Icons.person, 'Profile', 2),
+            ],
+          ),
+        ),
+      ),
+      floatingActionButton: Stack(
+        alignment: Alignment.bottomCenter,
+        children: [
+          Positioned(
+            bottom: 30,
+            child: SizedBox(
+              height: 65,
+              width: 65,
+              child: FloatingActionButton(
+                onPressed: () => setState(() => _selectedIndex = 1),
+                backgroundColor: Colors.blue,  // Keep FAB color consistent with the theme
+                shape: CircleBorder(),
+                elevation: 10,
+                child: Icon(Icons.add, size: 30, color: Colors.white),
               ),
-              // Empty slot for center FAB
-              Expanded(child: SizedBox()),
-              // Profile Tab
-              Expanded(
-                child: Material(
-                  color: Colors.transparent,
-                  child: InkWell(
-                    borderRadius: BorderRadius.circular(30),
-                    splashColor: Colors.blue.withOpacity(0.2), // Subtle effect
-                    highlightColor: Colors.blue.withOpacity(0.1),
-                    onTap: () => setState(() => _selectedIndex = 2),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          Icons.person,
-                          size: 25,
-                          color: _selectedIndex == 2
-                              ? Theme.of(context).colorScheme.primary
-                              : Theme.of(context).disabledColor,
-                        ),
-                        SizedBox(height: 4),
-                        Text(
-                          'Profile',
-                          style: TextStyle(
-                            fontSize: 12,
-                            color: _selectedIndex == 2
-                                ? Theme.of(context).colorScheme.primary
-                                : Theme.of(context).disabledColor,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
+            ),
+          ),
+          Positioned(
+            bottom: 5,
+            child: Text(
+              'Add',
+              style: TextStyle(
+                fontSize: 12,
+                color: _selectedIndex == 1
+                          ? Theme.of(context).colorScheme.primary
+                          : Theme.of(context,).colorScheme.onSurface.withOpacity(0.5),
+              ),
+            ),
+          ),
+        ],
+      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+    );
+  }
+
+  Widget _buildNavItem(IconData icon, String label, int index) {
+    final isSelected = _selectedIndex == index;
+    return Expanded(
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          borderRadius: BorderRadius.circular(30),
+          onTap: () => setState(() => _selectedIndex = index),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(
+                icon,
+                color: _getIconColor(isSelected),
+              ),
+              SizedBox(height: 4),
+              Text(
+                label,
+                style: TextStyle(
+                  fontSize: 12,
+                  color: _getTextColor(isSelected),
                 ),
               ),
             ],
           ),
         ),
       ),
-      floatingActionButton: GestureDetector(
-        onTap: () => setState(() => _selectedIndex = 1), // Use direct setState for FAB tap
-        child: Stack(
-          alignment: Alignment.bottomCenter,
-          children: [
-            Positioned(
-              bottom: 30,
-              child: SizedBox(
-                height: 65,
-                width: 65,
-                child: FloatingActionButton(
-                  onPressed: null, // Disable default tap since GestureDetector is used
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(100),
-                  ),
-                  elevation: 10,
-                  child: Icon(Icons.add, size: 30, color: Colors.white),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: 5,
-              child: Text(
-                'Add',
-                style: TextStyle(
-                  fontSize: 12,
-                  color: _selectedIndex == 1
-                      ? Theme.of(context).colorScheme.primary
-                      : Theme.of(context).disabledColor,
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
     );
+  }
+
+  // Helper function to get icon color based on selection
+  Color _getIconColor(bool isSelected) {
+    return isSelected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
+  }
+
+  // Helper function to get text color based on selection
+  Color _getTextColor(bool isSelected) {
+    return isSelected
+        ? Theme.of(context).colorScheme.primary
+        : Theme.of(context).colorScheme.onSurface.withOpacity(0.5);
   }
 }
